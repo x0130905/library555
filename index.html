@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="超级无敌学习资料平台，采用 Netlify Identity 邀请制登录，登录后在线查看 PDF 学习资料。"
+    />
+    <title>超级无敌学习资料平台</title>
+    <link rel="preconnect" href="https://identity.netlify.com" />
+    <link rel="dns-prefetch" href="https://identity.netlify.com" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050706;
+        --ink: #f6f2e8;
+        --muted: #aab8b0;
+        --soft: #7e8c85;
+        --line: rgba(223, 236, 226, 0.15);
+        --line-strong: rgba(223, 236, 226, 0.26);
+        --panel: rgba(13, 19, 18, 0.78);
+        --panel-strong: rgba(18, 27, 25, 0.9);
+        --green: #4ee0bd;
+        --gold: #e0bd67;
+        --blue: #8bb5ff;
+        --shadow: 0 34px 100px rgba(0, 0, 0, 0.58);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
+          sans-serif;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 16% 12%, rgba(78, 224, 189, 0.24), transparent 28rem),
+          radial-gradient(circle at 82% 16%, rgba(224, 189, 103, 0.14), transparent 30rem),
+          radial-gradient(circle at 55% 88%, rgba(139, 181, 255, 0.16), transparent 34rem),
+          linear-gradient(145deg, #050706 0%, #09100e 48%, #050706 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.026) 1px, transparent 1px);
+        background-size: 54px 54px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), transparent 82%);
+      }
+
+      .auth-view {
+        min-height: 100vh;
+        padding: 22px;
+      }
+
+      .auth-nav {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: min(1180px, 100%);
+        margin: 0 auto 18px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(5, 8, 7, 0.58);
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.24);
+        backdrop-filter: blur(20px);
+      }
+
+      .auth-nav strong {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+      }
+
+      .auth-nav strong span {
+        width: 13px;
+        height: 13px;
+        border-radius: 99px;
+        background: var(--green);
+        box-shadow: 0 0 28px rgba(78, 224, 189, 0.9);
+      }
+
+      .auth-nav div,
+      .auth-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .auth-shell {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.78fr);
+        gap: 20px;
+        width: min(1180px, 100%);
+        margin: 0 auto;
+      }
+
+      .auth-card {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025)),
+          var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(24px);
+      }
+
+      .hero-card {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(28px, 6vw, 62px);
+      }
+
+      .hero-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 4px;
+        pointer-events: none;
+        background: linear-gradient(90deg, var(--green), var(--gold), var(--blue));
+      }
+
+      .hero-card::after {
+        content: "";
+        position: absolute;
+        right: -10rem;
+        bottom: -14rem;
+        width: 30rem;
+        height: 30rem;
+        border: 1px solid rgba(78, 224, 189, 0.18);
+        border-radius: 999px;
+        pointer-events: none;
+        background: radial-gradient(circle, rgba(78, 224, 189, 0.12), transparent 64%);
+      }
+
+      .hero-card > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .eyebrow,
+      .panel-kicker {
+        margin: 0 0 12px;
+        color: var(--green);
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 760px;
+        margin: 0 0 18px;
+        font-size: clamp(2.55rem, 7vw, 5.5rem);
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      .subtitle {
+        max-width: 680px;
+        margin-bottom: 22px;
+        color: #f0dfb6;
+        font-size: clamp(1.04rem, 2vw, 1.28rem);
+        font-weight: 720;
+      }
+
+      .auth-copy {
+        max-width: 720px;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 1.08rem;
+        line-height: 1.8;
+      }
+
+      .hero-metrics,
+      .entry-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin: 30px 0 24px;
+      }
+
+      .entry-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 0;
+      }
+
+      .hero-metrics div,
+      .entry-grid article {
+        min-height: 110px;
+        padding: 17px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+          rgba(3, 7, 6, 0.48);
+      }
+
+      .hero-metrics strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--gold);
+        font-size: 1.08rem;
+      }
+
+      .hero-metrics span,
+      .entry-grid p,
+      .setup-card p,
+      .setup-card li {
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .entry-grid h2,
+      .setup-card h2 {
+        margin-bottom: 8px;
+        font-size: 1.14rem;
+      }
+
+      .button {
+        display: inline-flex;
+        position: relative;
+        z-index: 2;
+        justify-content: center;
+        align-items: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        font: inherit;
+        font-weight: 860;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+      }
+
+      .button.primary {
+        background: linear-gradient(135deg, #64f0ce, #36b99c);
+        color: #04100d;
+        box-shadow: 0 18px 40px rgba(78, 224, 189, 0.28);
+      }
+
+      .button.secondary {
+        border-color: var(--line-strong);
+        background: rgba(255, 255, 255, 0.052);
+        color: var(--ink);
+      }
+
+      .button.compact {
+        min-height: 38px;
+        border-radius: 12px;
+        padding-inline: 14px;
+      }
+
+      .notice {
+        margin: 22px 0 0;
+        padding: 14px 16px;
+        border: 1px solid rgba(78, 224, 189, 0.32);
+        border-radius: 16px;
+        background: rgba(78, 224, 189, 0.105);
+        color: #defcf4;
+        line-height: 1.65;
+      }
+
+      .setup-card {
+        padding: clamp(24px, 4vw, 36px);
+      }
+
+      .setup-card ul {
+        margin: 0 0 22px;
+        padding-left: 22px;
+      }
+
+      .setup-card li {
+        margin-bottom: 12px;
+      }
+
+      .invite-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: start center;
+        overflow: auto;
+        padding: max(18px, env(safe-area-inset-top)) 14px max(24px, env(safe-area-inset-bottom));
+        background: rgba(0, 0, 0, 0.62);
+        backdrop-filter: blur(20px);
+      }
+
+      .invite-window {
+        width: min(560px, 100%);
+        max-height: calc(100dvh - 32px);
+        border: 1px solid var(--line-strong);
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.035)),
+          rgba(10, 16, 15, 0.96);
+        box-shadow: 0 34px 120px rgba(0, 0, 0, 0.65);
+        overflow: auto;
+      }
+
+      .invite-window header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 22px 22px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .invite-window h2 {
+        margin-bottom: 6px;
+      }
+
+      .invite-window p {
+        margin-bottom: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .invite-close {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--ink);
+        cursor: pointer;
+        font: inherit;
+        font-size: 1.35rem;
+      }
+
+      .invite-form {
+        display: grid;
+        gap: 14px;
+        padding: 20px 22px 22px;
+      }
+
+      .invite-form label {
+        display: grid;
+        gap: 7px;
+      }
+
+      .invite-form label span {
+        color: #dbe8df;
+        font-weight: 800;
+      }
+
+      .invite-form input {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 13px;
+        border: 1px solid var(--line-strong);
+        border-radius: 14px;
+        outline: 0;
+        background: rgba(0, 0, 0, 0.38);
+        color: var(--ink);
+        font: inherit;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .invite-form input:focus {
+        border-color: rgba(78, 224, 189, 0.72);
+        box-shadow: 0 0 0 4px rgba(78, 224, 189, 0.13);
+      }
+
+      .invite-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .invite-status {
+        min-height: 24px;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .invite-status[data-type='error'] {
+        color: #ffb0a4;
+      }
+
+      .invite-status[data-type='success'] {
+        color: #91f2dc;
+      }
+
+      @media (max-width: 900px) {
+        .auth-shell {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .auth-view {
+          padding: 12px;
+        }
+
+        .auth-nav {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .auth-nav div,
+        .auth-actions,
+        .hero-metrics,
+        .entry-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+
+        .hero-card {
+          padding: 26px 20px;
+        }
+
+        .invite-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .invite-window {
+          border-radius: 18px;
+        }
+
+        .invite-window header,
+        .invite-form {
+          padding-inline: 16px;
+        }
+
+        .invite-window h2 {
+          font-size: 1.45rem;
+        }
+      }
+    </style>
+    <script src="./src/app.js" defer></script>
+  </head>
+  <body>
+    <section class="auth-view" id="authView">
+      <nav class="auth-nav">
+        <strong><span></span>超级无敌学习资料平台</strong>
+        <div>
+          <button class="button primary compact" id="loginButton" type="button">登录</button>
+          <button class="button secondary compact" id="acceptInviteButton" type="button">
+            接受邀请 / 设置密码
+          </button>
+        </div>
+      </nav>
+
+      <main class="auth-shell">
+        <section class="auth-card hero-card">
+          <p class="eyebrow">Invite Only PDF Library</p>
+          <h1>超级无敌学习资料平台</h1>
+          <p class="subtitle">文件由wxy免费上传提供，请勿倒卖牟利</p>
+          <p class="auth-copy">
+            本站采用邮箱邀请制。收到邀请邮件后，点击邮件中的链接设置密码，之后即可登录并在线查看学习资料。
+          </p>
+          <div class="hero-metrics" aria-label="平台能力">
+            <div>
+              <strong>Invite</strong>
+              <span>邮箱邀请进入</span>
+            </div>
+            <div>
+              <strong>View</strong>
+              <span>只支持在线查看</span>
+            </div>
+            <div>
+              <strong>Admin</strong>
+              <span>管理员控制用户</span>
+            </div>
+          </div>
+
+          <div class="entry-grid">
+            <article>
+              <h2>学生入口</h2>
+              <p>拥有 learner 角色后，可以按分类检索资料，并在网页中在线查看 PDF 内容。</p>
+            </article>
+            <article>
+              <h2>管理员入口</h2>
+              <p>拥有 admin 角色后，可以邀请用户、调整用户角色，并管理用户访问权限。</p>
+            </article>
+          </div>
+
+          <div class="auth-actions">
+            <button class="button primary" id="loginHeroButton" type="button">登录进入资料库</button>
+            <button class="button secondary" id="inviteHeroButton" type="button">接受邀请 / 设置密码</button>
+          </div>
+
+          <p class="notice" id="authStatus" aria-live="polite">
+            请登录；如果你是第一次进入，请先在“接受邀请 / 设置密码”处完成账号设置。
+          </p>
+        </section>
+
+        <aside class="auth-card setup-card">
+          <p class="panel-kicker">Netlify Identity</p>
+          <h2>部署后需要开启的 Netlify 设置</h2>
+          <ul>
+            <li>在 Netlify 后台启用 Identity。</li>
+            <li>Registration preference 选择 Invite only。</li>
+            <li>先邀请管理员邮箱，并在 Identity 用户详情里添加 admin 角色。</li>
+            <li>之后通过本站的“用户管理”页面邀请学生邮箱。</li>
+          </ul>
+          <p>
+            如果刚接受邀请后暂时不能进入资料库，退出后重新登录一次，或让管理员确认该账号有
+            learner / admin 角色。
+          </p>
+        </aside>
+      </main>
+    </section>
+
+    <section class="invite-modal" id="inviteDialog" aria-labelledby="inviteDialogTitle" hidden>
+      <div class="invite-window" role="dialog" aria-modal="true">
+        <header>
+          <div>
+            <p class="panel-kicker">Accept Invitation</p>
+            <h2 id="inviteDialogTitle">接受邀请 / 设置密码</h2>
+            <p>从邮箱点进来会自动填入邀请码；也可以手动粘贴邀请邮件链接或邀请码。</p>
+          </div>
+          <button class="invite-close" id="closeInviteDialog" type="button" aria-label="关闭邀请窗口">×</button>
+        </header>
+        <form class="invite-form" id="inviteForm">
+          <label>
+            <span>邀请邮件链接</span>
+            <input id="inviteLinkInput" type="url" placeholder="粘贴邀请邮件按钮里的完整链接" />
+          </label>
+          <label>
+            <span>邀请码</span>
+            <input id="inviteTokenInput" type="text" placeholder="如果链接里有 invite_token，会自动填入这里" autocomplete="one-time-code" />
+          </label>
+          <div class="invite-grid">
+            <label>
+              <span>设置密码</span>
+              <input id="invitePassword" type="password" autocomplete="new-password" required />
+            </label>
+            <label>
+              <span>再次输入密码</span>
+              <input id="invitePasswordConfirm" type="password" autocomplete="new-password" required />
+            </label>
+          </div>
+          <button class="button primary" type="submit">设置密码并完成注册</button>
+          <p class="invite-status" id="inviteStatus" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="app-view" id="appView" hidden>
+      <header class="site-header">
+        <div class="shell header-grid">
+          <div>
+            <p class="eyebrow">Private PDF Library</p>
+            <h1>超级无敌学习资料平台</h1>
+            <p class="subtitle">文件由wxy免费上传提供，请勿倒卖牟利</p>
+          </div>
+          <div class="header-side">
+            <div class="stats" aria-label="资料库统计">
+              <div>
+                <strong id="totalCount">0</strong>
+                <span>份资料</span>
+              </div>
+              <div>
+                <strong id="categoryCount">0</strong>
+                <span>个分类</span>
+              </div>
+            </div>
+            <div class="session-box">
+              <span id="userEmail">未登录</span>
+              <strong id="roleBadge">learner</strong>
+            </div>
+            <div class="session-actions">
+              <a class="button secondary" id="contentAdminLink" href="./admin/" hidden>资料后台</a>
+              <button class="button secondary" id="userAdminButton" type="button" hidden>用户管理</button>
+              <button class="button secondary" id="logoutButton" type="button">退出登录</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="shell user-admin-panel" id="userAdminPanel" hidden>
+        <div class="panel-head">
+          <div>
+            <h2>用户管理</h2>
+            <p>邀请学生邮箱、设置 learner / admin 角色，或移除不再需要的账号。</p>
+          </div>
+          <button class="close-button" id="closeUserAdmin" type="button" aria-label="关闭用户管理">×</button>
+        </div>
+
+        <div class="admin-layout">
+          <form class="manager-form" id="inviteUserForm">
+            <h3>邀请新用户</h3>
+            <label>
+              <span>邮箱</span>
+              <input id="inviteEmail" type="email" placeholder="student@example.com" required />
+            </label>
+            <label>
+              <span>角色</span>
+              <select id="inviteRole">
+                <option value="learner">learner 学生</option>
+                <option value="admin">admin 管理员</option>
+              </select>
+            </label>
+            <button class="button primary" type="submit">发送邀请</button>
+          </form>
+
+          <div class="manager-form user-list-card">
+            <div class="list-head">
+              <h3>已有用户</h3>
+              <button class="button secondary compact" id="refreshUsers" type="button">刷新</button>
+            </div>
+            <div class="user-list" id="userList"></div>
+          </div>
+        </div>
+        <p class="form-status" id="userAdminStatus" aria-live="polite"></p>
+      </section>
+
+      <main class="shell page-layout">
+        <aside class="filter-panel" aria-label="分类筛选">
+          <div class="panel-head">
+            <h2>分类</h2>
+          </div>
+          <nav class="category-list" id="categoryList"></nav>
+        </aside>
+
+        <section class="content-area" aria-labelledby="libraryTitle">
+          <div class="toolbar">
+            <div>
+              <h2 id="libraryTitle">全部资料</h2>
+              <p id="resultSummary">正在载入资料...</p>
+            </div>
+            <label class="search-box">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input
+                id="searchInput"
+                type="search"
+                autocomplete="off"
+                placeholder="搜索标题、简介或标签"
+              />
+            </label>
+          </div>
+
+          <section class="viewer-panel" id="viewerPanel" hidden>
+            <div class="viewer-head">
+              <div>
+                <h3 id="viewerTitle">在线查看</h3>
+                <p id="viewerMeta"></p>
+              </div>
+              <div class="viewer-actions">
+                <button class="viewer-action-button" id="fullscreenViewer" type="button" aria-label="全屏查看 PDF">
+                  全屏查看
+                </button>
+                <button class="close-button" id="closeViewer" type="button" aria-label="关闭预览">×</button>
+              </div>
+            </div>
+            <div class="pdf-canvas-viewer" id="pdfViewer" role="document" aria-label="PDF 在线预览"></div>
+          </section>
+
+          <div class="pdf-grid" id="pdfGrid" aria-live="polite"></div>
+          <div class="empty-state" id="emptyState" hidden>
+            <h3>没有找到匹配的 PDF</h3>
+            <p>可以调整搜索词或切换分类。</p>
+          </div>
+        </section>
+      </main>
+    </section>
+  </body>
+</html>

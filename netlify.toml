@@ -1,0 +1,28 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  included_files = ["public/pdfs/**", "data/pdfs.json"]
+
+[[redirects]]
+  from = "/data/*"
+  to = "/"
+  status = 401
+  force = true
+
+[[redirects]]
+  from = "/public/pdfs/*"
+  to = "/"
+  status = 401
+  force = true
+
+[[headers]]
+  for = "/public/pdfs/*.pdf"
+  [headers.values]
+    Content-Type = "application/pdf"
+
+[[headers]]
+  for = "/src/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300"

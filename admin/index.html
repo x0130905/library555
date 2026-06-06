@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>资料后台 - 超级无敌学习资料平台</title>
+    <link href="./config.yml" type="text/yaml" rel="cms-config-url" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050706;
+        --ink: #f6f2e8;
+        --muted: #aab8b0;
+        --line: rgba(223, 236, 226, 0.18);
+        --panel: rgba(13, 19, 18, 0.86);
+        --green: #4ee0bd;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 18% 12%, rgba(78, 224, 189, 0.22), transparent 28rem),
+          linear-gradient(145deg, #050706 0%, #09100e 52%, #050706 100%);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
+          sans-serif;
+      }
+
+      .gate {
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        padding: 24px;
+      }
+
+      .gate-card {
+        width: min(620px, 100%);
+        padding: clamp(24px, 6vw, 42px);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025)),
+          var(--panel);
+        box-shadow: 0 34px 100px rgba(0, 0, 0, 0.58);
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--green);
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: clamp(2rem, 8vw, 4.2rem);
+        line-height: 0.96;
+      }
+
+      p,
+      li {
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      button,
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--ink);
+        font: inherit;
+        font-weight: 850;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .primary {
+        border: 0;
+        background: linear-gradient(135deg, #64f0ce, #36b99c);
+        color: #04100d;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="gate" id="gate">
+      <section class="gate-card">
+        <p class="eyebrow">Content Admin</p>
+        <h1>资料后台</h1>
+        <p id="status">正在验证管理员身份...</p>
+        <ul id="help" hidden>
+          <li>如果看到 Git Gateway 报错，请在 Netlify 后台开启 Identity 里的 Git Gateway。</li>
+          <li>确认这个站点是从 GitHub 仓库部署，而不是拖拽 zip 部署。</li>
+          <li>如果 GitHub 默认分支不是 main，请把 admin/config.yml 里的 branch 改成你的分支名。</li>
+          <li>为避免 PDF 损坏，请先在 GitHub 的 public/pdfs/ 目录上传 PDF，再在后台填写 PDF 路径。</li>
+        </ul>
+        <div class="actions">
+          <button class="primary" id="loginButton" type="button" hidden>管理员登录</button>
+          <a href="../">返回资料库</a>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+      const statusEl = document.querySelector('#status');
+      const helpEl = document.querySelector('#help');
+      const gateEl = document.querySelector('#gate');
+      const loginButton = document.querySelector('#loginButton');
+      const DEVICE_SESSION_URL = '/.netlify/functions/device-session';
+      let cmsLoaded = false;
+      let deviceSessionTimer = null;
+      let currentUser = null;
+      let currentSessionId = '';
+
+      loginButton.addEventListener('click', () => {
+        window.netlifyIdentity.open('login');
+      });
+
+      window.netlifyIdentity.on('init', handleUser);
+      window.netlifyIdentity.on('login', (user) => {
+        window.netlifyIdentity.close();
+        handleUser(user);
+      });
+      window.netlifyIdentity.on('logout', () => {
+        stopDeviceSessionMonitor();
+        currentUser = null;
+        currentSessionId = '';
+        statusEl.textContent = '请先使用 admin 账号登录，登录后才能管理 PDF 文件和分类。';
+        loginButton.hidden = false;
+        helpEl.hidden = false;
+      });
+      window.netlifyIdentity.init();
+
+      function handleUser(user) {
+        if (!user) {
+          statusEl.textContent = '请先使用 admin 账号登录，登录后才能管理 PDF 文件和分类。';
+          loginButton.hidden = false;
+          helpEl.hidden = false;
+          return;
+        }
+
+        if (!getRoles(user).includes('admin')) {
+          statusEl.textContent = '当前账号没有 admin 角色，不能进入资料后台。';
+          loginButton.hidden = true;
+          helpEl.hidden = false;
+          return;
+        }
+
+        currentUser = user;
+        registerDeviceSession(user)
+          .then(() => {
+            startDeviceSessionMonitor();
+            loadCms();
+          })
+          .catch((error) => {
+            statusEl.textContent = error.message || '设备登录校验失败，请稍后重试。';
+            loginButton.hidden = false;
+            helpEl.hidden = false;
+          });
+      }
+
+      function getRoles(user) {
+        const roles =
+          user?.app_metadata?.roles ||
+          user?.app_metadata?.authorization?.roles ||
+          user?.user_metadata?.roles ||
+          [];
+        return Array.isArray(roles) ? roles : [];
+      }
+
+      function loadCms() {
+        if (cmsLoaded) return;
+        cmsLoaded = true;
+        statusEl.textContent = '正在打开资料编辑器...';
+        helpEl.hidden = false;
+
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/decap-cms@^3.6.0/dist/decap-cms.js';
+        script.onload = () => {
+          gateEl.remove();
+        };
+        script.onerror = () => {
+          cmsLoaded = false;
+          statusEl.textContent = '资料编辑器加载失败，请检查网络后刷新页面。';
+          helpEl.hidden = false;
+        };
+        document.body.appendChild(script);
+      }
+
+      function getDeviceSessionId(user) {
+        const userId = user?.sub || user?.id || user?.email || 'unknown-user';
+        const key = `pdf-library-device-session:${userId}`;
+        let sessionId = localStorage.getItem(key);
+        if (!sessionId) {
+          sessionId = createSessionId();
+          localStorage.setItem(key, sessionId);
+        }
+        return sessionId;
+      }
+
+      function createSessionId() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+          return window.crypto.randomUUID();
+        }
+        return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random()
+          .toString(36)
+          .slice(2)}`;
+      }
+
+      async function registerDeviceSession(user) {
+        currentSessionId = getDeviceSessionId(user);
+        await sendDeviceSessionRequest('register');
+      }
+
+      function startDeviceSessionMonitor() {
+        stopDeviceSessionMonitor();
+        deviceSessionTimer = window.setInterval(checkDeviceSession, 30000);
+      }
+
+      function stopDeviceSessionMonitor() {
+        if (deviceSessionTimer) {
+          window.clearInterval(deviceSessionTimer);
+          deviceSessionTimer = null;
+        }
+      }
+
+      async function checkDeviceSession() {
+        if (!currentUser || !currentSessionId) return;
+        try {
+          await sendDeviceSessionRequest('check');
+        } catch (error) {
+          if (error.status === 409) {
+            statusEl.textContent = '该账号已在另一台设备登录，本设备已自动退出。';
+            stopDeviceSessionMonitor();
+            window.netlifyIdentity.logout();
+          }
+        }
+      }
+
+      async function sendDeviceSessionRequest(action) {
+        const token = await currentUser.jwt();
+        let response;
+        let data = {};
+
+        try {
+          response = await fetch(DEVICE_SESSION_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action,
+              sessionId: currentSessionId,
+            }),
+          });
+          data = await response.json().catch(() => ({}));
+        } catch (error) {
+          console.warn('Device session service is unavailable.', error);
+          return { active: true, limited: false };
+        }
+
+        if (!response.ok) {
+          const error = new Error(data.error || '设备会话校验失败。');
+          error.status = response.status;
+          if (response.status !== 409) {
+            console.warn('Device session check was skipped.', error);
+            return { active: true, limited: false };
+          }
+          throw error;
+        }
+        return data;
+      }
+    </script>
+  </body>
+</html>

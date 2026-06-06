@@ -1,0 +1,64 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/pdfs"
+public_folder: "public/pdfs"
+
+collections:
+  - name: "library"
+    label: "资料库"
+    files:
+      - name: "pdfs"
+        label: "PDF 资料清单"
+        file: "data/pdfs.json"
+        format: "json"
+        fields:
+          - label: "PDF 资料"
+            name: "pdfs"
+            widget: "list"
+            summary: "{{fields.title}} / {{fields.category}}"
+            minimize_collapsed: true
+            fields:
+              - label: "ID"
+                name: "id"
+                widget: "string"
+                hint: "每份资料唯一，例如 chapter-01。不要和其他资料重复。"
+              - label: "标题"
+                name: "title"
+                widget: "string"
+              - label: "分类"
+                name: "category"
+                widget: "string"
+                hint: "分类会自动显示在资料库左侧。"
+              - label: "简介"
+                name: "description"
+                widget: "text"
+                required: false
+              - label: "PDF 文件路径"
+                name: "fileUrl"
+                widget: "string"
+                required: true
+                pattern:
+                  - "^public/pdfs/.+\\.pdf$"
+                  - "必须填写 public/pdfs/文件名.pdf，例如 public/pdfs/chapter-01.pdf"
+                hint: "为避免 Git Gateway 上传 PDF 后损坏，请先在 GitHub 仓库 public/pdfs/ 目录上传 PDF，再在这里填写路径。不要在后台直接上传 PDF 二进制文件。"
+              - label: "上传时间"
+                name: "uploadDate"
+                widget: "datetime"
+                date_format: "YYYY-MM-DD"
+                time_format: false
+                format: "YYYY-MM-DD"
+              - label: "文件大小"
+                name: "size"
+                widget: "string"
+                required: false
+                hint: "例如 2.4 MB。后台不会自动计算，需要手动填写。"
+              - label: "标签"
+                name: "tags"
+                widget: "list"
+                required: false
+                field:
+                  label: "标签"
+                  name: "tag"
+                  widget: "string"

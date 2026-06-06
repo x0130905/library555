@@ -1,0 +1,54 @@
+{
+  "pdfs": [
+    {
+      "id": "design-system-guide",
+      "title": "设计系统入门指南",
+      "category": "理论力学",
+      "description": "介绍设计系统的基础概念、组件规范和团队协作流程，适合产品与设计团队共享阅读。",
+      "fileUrl": "public/pdfs/design-system-guide.pdf",
+      "uploadDate": "2026-05-12",
+      "size": "1.2 MB",
+      "tags": ["设计系统", "组件", "协作"]
+    },
+    {
+      "id": "frontend-checklist",
+      "title": "前端上线检查清单",
+      "category": "大学物理",
+      "description": "整理静态网站上线前需要确认的性能、可访问性、SEO、缓存和部署配置事项。",
+      "fileUrl": "public/pdfs/frontend-checklist.pdf",
+      "uploadDate": "2026-05-28",
+      "size": "860 KB",
+      "tags": ["前端", "部署", "Netlify"]
+    },
+    {
+      "id": "research-summary",
+      "title": "用户研究摘要模板",
+      "category": "高等数学",
+      "description": "用于沉淀访谈结论、核心洞察、机会点和后续行动计划的 PDF 模板示例。",
+      "fileUrl": "public/pdfs/research-summary.pdf",
+      "uploadDate": "2026-04-18",
+      "size": "540 KB",
+      "tags": ["用户研究", "模板", "报告"]
+    },
+    {
+      "id": "111",
+      "title": "5555",
+      "category": "理论力学",
+      "description": "这份资料的简短说明。",
+      "fileUrl": "public/pdfs/111.pdf",
+      "uploadDate": "2026-06-03",
+      "size": "2.4 MB",
+      "tags": ["标签一", "标签二"]
+    },
+    {
+      "id": "第5章热力学基础",
+      "title": "前端上线检查清单",
+      "category": "大学物理",
+      "description": "整理静态网站上线前需要确认的性能、可访问性、SEO、缓存和部署配置事项。",
+      "fileUrl": "public/pdfs/第5章热力学基础.pdf",
+      "uploadDate": "2026-05-28",
+      "size": "860 KB",
+      "tags": ["前端", "部署", "Netlify"]
+    }
+  ]
+}
