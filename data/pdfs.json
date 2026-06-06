@@ -8,7 +8,11 @@
       "fileUrl": "public/pdfs/design-system-guide.pdf",
       "uploadDate": "2026-05-12",
       "size": "1.2 MB",
-      "tags": ["设计系统", "组件", "协作"]
+      "tags": [
+        "设计系统",
+        "组件",
+        "协作"
+      ]
     },
     {
       "id": "frontend-checklist",
@@ -18,7 +22,11 @@
       "fileUrl": "public/pdfs/frontend-checklist.pdf",
       "uploadDate": "2026-05-28",
       "size": "860 KB",
-      "tags": ["前端", "部署", "Netlify"]
+      "tags": [
+        "前端",
+        "部署",
+        "Netlify"
+      ]
     },
     {
       "id": "research-summary",
@@ -28,7 +36,11 @@
       "fileUrl": "public/pdfs/research-summary.pdf",
       "uploadDate": "2026-04-18",
       "size": "540 KB",
-      "tags": ["用户研究", "模板", "报告"]
+      "tags": [
+        "用户研究",
+        "模板",
+        "报告"
+      ]
     },
     {
       "id": "111",
@@ -38,7 +50,10 @@
       "fileUrl": "public/pdfs/111.pdf",
       "uploadDate": "2026-06-03",
       "size": "2.4 MB",
-      "tags": ["标签一", "标签二"]
+      "tags": [
+        "标签一",
+        "标签二"
+      ]
     },
     {
       "id": "第5章热力学基础",
@@ -48,7 +63,20 @@
       "fileUrl": "public/pdfs/第5章热力学基础.pdf",
       "uploadDate": "2026-05-28",
       "size": "860 KB",
-      "tags": ["前端", "部署", "Netlify"]
+      "tags": [
+        "前端",
+        "部署",
+        "Netlify"
+      ]
+    },
+    {
+      "fileUrl": "public/pdfs/第2次实验-读程序写结果.pdf",
+      "description": "第2次实验-读程序写结果",
+      "category": "python题库",
+      "title": "第2次实验-读程序写结果",
+      "id": "第2次实验-读程序写结果",
+      "uploadDate": "2026-06-06",
+      "size": "21.7KB"
     }
   ]
 }
